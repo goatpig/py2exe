@@ -69,7 +69,7 @@ if sys.frozen == "windows_exe":
         def flush(self):
             if self._file is not None:
                 self._file.flush()
-    sys.stderr = Stderr()
+    #sys.stderr = Stderr()
     del sys._MessageBox
     del Stderr
 

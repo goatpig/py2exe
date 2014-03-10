@@ -2,6 +2,8 @@ Modified by goatpig to support:
 
 1) Running frozen exe from unicode paths
 2) Display icons fed to py2exe through setup.py icon_resources in explorer
+3) Parse unicode arguments, pass utf8 to python
+4) Turned off .exe.log stderr write out
 
 
 ========================================

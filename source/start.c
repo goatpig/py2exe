@@ -37,7 +37,7 @@
 #include <windows.h>
 #include "MemoryModule.h"
 
-//#define wchar_t __wchar_t
+#pragma comment(lib, "Shell32.lib")
 
 #if defined(MS_WINDOWS) || defined(__CYGWIN__)
 #include <fcntl.h>
@@ -446,7 +446,6 @@ int init_with_instance(HMODULE hmod, char *frozen)
 			return rc;
 	
 	//	printf("Path before Py_Initialize(): %s\n", Py_GetPath());
-	
 		Py_Initialize();
 	//	printf("Path after Py_Initialize(): %s\n", PyString_AsString(PyObject_Str(PySys_GetObject("path"))));
 	} else {
@@ -501,11 +500,33 @@ void fini(void)
 
 int start (int argc, char **argv)
 {
-	int rc;
+	int rc, nargs, i;
 	PyObject *new_path;
 
-	strcpy(argv[0], modulename);
-	PySys_SetArgv(argc, argv);
+	char **args;
+
+	wchar_t* warg_str = GetCommandLineW();
+	wchar_t** warg_v = CommandLineToArgvW(warg_str, &nargs);
+
+	args = (char**)malloc(sizeof(char*)*nargs);
+	for(i=0; i<nargs; i++)
+	{
+		args[i] = (char*)malloc(MAX_PATH +1);
+		memset(args[i], 0, MAX_PATH +1);
+		WideCharToMultiByte(CP_UTF8, 0, warg_v[i], -1, args[i], MAX_PATH, 0, 0);
+	}
+
+	if(strlen(modulename)>strlen(args[0])) 
+		args[0] = (char*)realloc(args[0], strlen(modulename) +1);
+		
+	strcpy(args[0], modulename);
+	PySys_SetArgv(nargs, args);
+
+	for(i=0; i<nargs; i++)
+		free(args[i]);
+	free(args);
+
+
 	// PySys_SetArgv munged the path - specifically, it added the
 	// directory of argv[0] at the start of sys.path.
 	// Create a new list object for the path, and rely on our
