@@ -88,5 +88,6 @@ WinMain(HINSTANCE hInst, HINSTANCE hPrevInst,
 		PyObject_SetAttrString(mod,
 				       "_MessageBox",
 				       PyCFunction_New(&method[0], NULL));
+
 	return start(__argc, __argv);
 }

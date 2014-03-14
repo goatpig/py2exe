@@ -86,11 +86,31 @@ BOOL calc_dirname(HMODULE hmod)
 	char *modulename_start;
 	char *cp;
 
+	int parse;
+	wchar_t *currdir = (wchar_t*)malloc(sizeof(wchar_t)*1024);
+
 	// get module filename
 	if (!GetModuleFileNameW(hmod, module_namew, sizeof(modulename))) {
 		SystemError(GetLastError(), "Retrieving module name");
 		return FALSE;
 	}
+
+	//set working directory
+	wcscpy(currdir, module_namew);
+	parse = wcslen(currdir) -1;
+	while(parse>0)
+	{
+		if(currdir[parse]==L'\\')
+		{
+			currdir[parse] = 0;
+			break;
+		}
+
+		parse--;
+	}
+
+	SetCurrentDirectoryW(currdir);
+	free(currdir);
 
 	WideCharToMultiByte(CP_UTF8, 0, module_namew, -1, modulename, sizeof(modulename), 0, 0);
 	free(module_namew);
@@ -347,6 +367,7 @@ static void calc_path()
 static int set_path_early()
 {
 	char *ppath;
+
 	Py_SetPythonHome(".");
 	/* Let Python calculate its initial path, according to the
 	   builtin rules */
@@ -525,7 +546,6 @@ int start (int argc, char **argv)
 	for(i=0; i<nargs; i++)
 		free(args[i]);
 	free(args);
-
 
 	// PySys_SetArgv munged the path - specifically, it added the
 	// directory of argv[0] at the start of sys.path.
